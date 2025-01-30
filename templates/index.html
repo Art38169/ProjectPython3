@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Usage Chart</title>
+</head>
+<body>
+    <h1>App Usage in Thailand</h1>
+    <form action="/generate_chart" method="POST">
+        <label for="year">Year:</label>
+        <input type="text" id="year" name="year" placeholder="e.g. 2021" required><br><br>
+
+        <label for="apps">Choose apps:</label><br>
+        <input type="checkbox" id="facebook" name="apps" value="Facebook">
+        <label for="facebook">Facebook</label><br>
+        <input type="checkbox" id="twitter" name="apps" value="Twitter">
+        <label for="twitter">Twitter</label><br>
+        <input type="checkbox" id="youtube" name="apps" value="YouTube">
+        <label for="youtube">YouTube</label><br>
+        <input type="checkbox" id="instagram" name="apps" value="Instagram">
+        <label for="instagram">Instagram</label><br>
+        <input type="checkbox" id="linkedin" name="apps" value="LinkedIn">
+        <label for="linkedin">LinkedIn</label><br><br>
+
+        <button type="submit">Generate Chart</button>
+    </form>
+
+    {% if request.method == 'POST' %}
+        <h2>Chart for {{ year }}:</h2>
+        <img src="{{ url_for('generate_chart') }}" alt="App Usage Chart">
+    {% endif %}
+</body>
+</html>
+
