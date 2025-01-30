@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Apps - App Usage Data</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Select Apps to Compare in {{ year }}</h1>
+            <p>Choose the apps you want to compare and select the graph type.</p>
+        </header>
+
+        <form action="/generate_chart" method="POST" class="app-form">
+            <input type="hidden" name="year" value="{{ year }}">
+
+            <h3>Choose the apps you want to compare:</h3>
+            <div class="checkbox-group">
+                {% for app in apps %}
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="{{ app }}" name="apps" value="{{ app }}">
+                        <label for="{{ app }}">{{ app }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3>Select Graph Type:</h3>
+            <div class="radio-group">
+                <input type="radio" id="bar" name="graph_type" value="bar" checked>
+                <label for="bar">Bar Chart</label>
+                
+                <input type="radio" id="line" name="graph_type" value="line">
+                <label for="line">Line Graph</label>
+            </div>
+
+            <button type="submit" class="btn">Generate Chart</button>
+        </form>
+    </div>
+</body>
+</html>

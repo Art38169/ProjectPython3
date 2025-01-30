@@ -10,20 +10,6 @@ app = Flask(__name__)
 # Directory where data files are stored
 DATA_DIR = "data"
 
-# Define a dictionary for app column indices (adjust as needed based on the CSV file structure)
-app_columns = {
-    "Facebook": 1,
-    "Twitter": 2,
-    "YouTube": 3,
-    "Pinterest": 4,
-    "VKontakte": 5,
-    "Reddit": 6,
-    "Instagram": 7,
-    "LinkedIn": 8,
-    "Tumblr": 9,
-    "Other": 10
-}
-
 def load_data_from_file(year):
     """
     Load data from a CSV file based on the given year.
@@ -32,64 +18,89 @@ def load_data_from_file(year):
     file_path = os.path.join(DATA_DIR, f"{year}.csv")
     
     if not os.path.exists(file_path):
-        return None  # File does not exist
+        return None, None  # File does not exist
     
-    # Read the data from the CSV file, skipping the header
+    # Read the data from the CSV file
     data = []
     with open(file_path, mode='r') as file:
         reader = csv.reader(file)
-        header = next(reader)
+        header = next(reader)  # Get the header row with app names
         
+        # Store the data rows (excluding the header)
         for row in reader:
-            # Only store the row data after the header (excluding the 'Date' column)
             data.append(row)
     
-    return np.array(data)
+    return np.array(data), header
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # List available years (this assumes you have files for each year like 2019.csv, 2020.csv, etc.)
+    years = [f.split('.')[0] for f in os.listdir(DATA_DIR) if f.endswith('.csv')]
+    return render_template('index.html', years=years)
+
+@app.route('/select_apps', methods=['POST'])
+def select_apps():
+    year = request.form.get('year')
+    data, header = load_data_from_file(year)
+    if data is None:
+        return f"Error: Data for {year} not found. Please upload the relevant file."
+    
+    # Extract the months from the data (first column)
+    months = data[:, 0]
+
+    # Prepare a list of apps to display dynamically
+    apps = header[1:]  # Exclude the first column (Date)
+    
+    return render_template('select_apps.html', year=year, months=months, apps=apps)
 
 @app.route('/generate_chart', methods=['POST'])
 def generate_chart():
     year = request.form.get('year')
-    
-    data = load_data_from_file(year)
-    if data is None:
-        return f"Error: Data for {year} not found."
-    
-    # Get the selected apps
     selected_apps = request.form.getlist('apps')
+    graph_type = request.form.get('graph_type')  # Get the selected graph type (bar/line)
+    
+    data, header = load_data_from_file(year)
+    if data is None:
+        return f"Error: Data for {year} not found. Please upload the relevant file."
 
-    # Extract months and data for the selected apps
-    months = data[:, 0]  # Get the months from the first column (Date column)
+    # Extract the months from the data (first column)
+    months = data[:, 0]
+
+    # Map selected apps to their corresponding column indices
+    app_indices = [header.index(app) for app in selected_apps]
+    
+    # Prepare data for each selected app
     app_data = {app: [] for app in selected_apps}
 
     for row in data:
-        for app in selected_apps:
-            app_index = app_columns.get(app)
-            if app_index:
-                try:
-                    # Convert app percentage data to float
-                    app_data[app].append(float(row[app_index]))
-                except ValueError:
-                    # Handle any data that can't be converted to float (e.g., empty cells)
-                    app_data[app].append(0)
+        for i, app in enumerate(selected_apps):
+            app_index = app_indices[i]
+            try:
+                # Convert app percentage data to float
+                app_data[app].append(float(row[app_index]))
+            except ValueError:
+                app_data[app].append(0)  # Handle any invalid data gracefully
 
-    # Generate the bar chart
+    # Generate the chart based on the selected graph type
     fig, ax = plt.subplots(figsize=(10, 6))
-    bar_width = 0.2
     x = np.arange(len(months))
 
-    # Plot bars for each app
-    for i, app in enumerate(selected_apps):
-        ax.bar(x + i * bar_width, app_data[app], width=bar_width, label=app)
+    if graph_type == 'bar':
+        # Plot bars for each app
+        bar_width = 0.15
+        for i, app in enumerate(selected_apps):
+            ax.bar(x + i * bar_width, app_data[app], width=bar_width, label=app)
+
+    elif graph_type == 'line':
+        # Plot lines for each app
+        for i, app in enumerate(selected_apps):
+            ax.plot(x, app_data[app], label=app, marker='o')
 
     # Customize the plot
     ax.set_xlabel('Months')
     ax.set_ylabel('Percentage of Users')
     ax.set_title(f'App Usage in {year} in Thailand')
-    ax.set_xticks(x + (len(selected_apps) - 1) * bar_width / 2)
+    ax.set_xticks(x)
     ax.set_xticklabels(months, rotation=45)
     ax.legend()
 
@@ -101,4 +112,3 @@ def generate_chart():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
