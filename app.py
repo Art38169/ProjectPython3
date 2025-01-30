@@ -7,6 +7,7 @@ matplotlib.use("Agg")  # Add this line before importing pyplot
 import matplotlib.pyplot as plt
 from flask import Flask, render_template, request, send_file
 from io import BytesIO
+import base64
 
 app = Flask(__name__)
 
@@ -113,11 +114,21 @@ def generate_chart():
     ax.set_xticklabels(months, rotation=45)
     ax.legend()
 
-    # Save the plot to a BytesIO object and return it as an image
+    # Save the plot to a BytesIO object and convert to base64
     img_io = BytesIO()
-    fig.savefig(img_io, format="png")
+    fig.savefig(img_io, format="png", bbox_inches="tight")
     img_io.seek(0)
-    return send_file(img_io, mimetype="image/png")
+    img_data = base64.b64encode(img_io.getvalue()).decode()
+
+    plt.close(fig)  # Close the figure to free memory
+
+    return render_template(
+        "chart.html",
+        year=year,
+        img_data=img_data,
+        selected_apps=selected_apps,
+        graph_type=graph_type,
+    )
 
 
 if __name__ == "__main__":

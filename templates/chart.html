@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chart Results - App Usage Data</title>
+    <link rel="stylesheet" href="static/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>App Usage Chart for {{ year }}</h1>
+        <p>Showing {{ graph_type }} chart for: {{ selected_apps|join(', ') }}</p>
+      </header>
+
+      <div class="chart-container">
+        <img src="data:image/png;base64,{{ img_data }}" alt="App Usage Chart" class="chart-image" />
+      </div>
+
+      <div class="actions">
+        <form action="/select_apps" method="POST">
+          <input type="hidden" name="year" value="{{ year }}" />
+          <button type="submit" class="btn">Create Another Chart</button>
+        </form>
+        <form action="/" method="GET">
+          <button type="submit" class="btn">Select Different Year</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
