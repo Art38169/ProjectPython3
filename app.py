@@ -42,7 +42,8 @@ def load_data_from_file(year):
 @app.route("/")
 def index():
     # List available years (this assumes you have files for each year like 2019.csv, 2020.csv, etc.)
-    years = [f.split(".")[0] for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
+    # years = [f.split(".")[0] for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
+    years = range(2019, 2025)
     return render_template("index.html", years=years)
 
 
@@ -125,6 +126,15 @@ def generate_chart():
         # Plot lines for each app
         for i, app in enumerate(selected_apps):
             ax.plot(x, app_data[app], label=app, marker="o")
+
+    elif graph_type == "area":
+        # Plot stacked area chart
+        bottom = np.zeros(len(months))
+        for app in selected_apps:
+            ax.fill_between(
+                x, bottom, bottom + np.array(app_data[app]), label=app, alpha=0.6
+            )
+            bottom += np.array(app_data[app])
 
     # Customize the plot
     ax.set_xlabel("Months")
