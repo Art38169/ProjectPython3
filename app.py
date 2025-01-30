@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from flask import Flask, render_template, request, send_file
 from io import BytesIO
 import base64
+import requests
 
 app = Flask(__name__)
 
@@ -91,6 +92,25 @@ def generate_chart():
             except ValueError:
                 app_data[app].append(0)  # Handle any invalid data gracefully
 
+    prompt = f"Generate two sentences analysis from the following rate usage application data (in percentage, January - December): {app_data} for the year {year}. Please be concise and to the point. Please include only text, no markdown or html syntax."
+    print(prompt)
+
+    api_key = "SG_3be07b4d8a88f075"
+    url = "https://api.segmind.com/v1/deepseek-chat"
+
+    data = {
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ]
+    }
+
+    response = requests.post(url, json=data, headers={"x-api-key": api_key})
+    analysis = response.json()["choices"][0]["message"]["content"]
+    print(analysis)
+
     # Generate the chart based on the selected graph type
     fig, ax = plt.subplots(figsize=(10, 6))
     x = np.arange(len(months))
@@ -128,6 +148,7 @@ def generate_chart():
         img_data=img_data,
         selected_apps=selected_apps,
         graph_type=graph_type,
+        analysis=analysis,
     )
 
 

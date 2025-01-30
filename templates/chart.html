@@ -17,6 +17,10 @@
         <img src="data:image/png;base64,{{ img_data }}" alt="App Usage Chart" class="chart-image" />
       </div>
 
+      <div class="analysis-container">
+        <p>{{ analysis }}</p>
+      </div>
+
       <div class="actions">
         <form action="/select_apps" method="POST">
           <input type="hidden" name="year" value="{{ year }}" />
